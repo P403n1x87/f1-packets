@@ -14,7 +14,7 @@ SUPPORTED_PYTHON_VERSIONS = [
     "3.9",
     "3.10",
 ]
-REQUESTED_PYTHON_VERSION = os.getenv("PYTHON") or SUPPORTED_PYTHON_VERSIONS[-1]
+REQUESTED_PYTHON_VERSION = os.getenv("PYTHON") or SUPPORTED_PYTHON_VERSIONS
 
 PYTEST_OPTIONS = ["-vvvs"]
 
@@ -39,7 +39,7 @@ def install_with_constraints(session, *args, **kwargs):
 # ---- Sessions ----
 
 
-@nox.session(python=SUPPORTED_PYTHON_VERSIONS)
+@nox.session(python=REQUESTED_PYTHON_VERSION)
 def tests(session):
     session.run("poetry", "install", "-vv", external=True)
     session.run("poetry", "run", "python", "-m", "pytest", *PYTEST_OPTIONS)
