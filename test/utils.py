@@ -1,5 +1,6 @@
 import pickle
 from pathlib import Path
+
 from f1.packets import resolve
 
 
@@ -9,6 +10,4 @@ class PickleListener:
             self.packets = pickle.load(f)
 
     def __iter__(self):
-        for i in range(10):
-            for key in self.packets:
-                yield resolve(self.packets[key][i])
+        yield from (resolve(_) for packets in self.packets.values() for _ in packets)
