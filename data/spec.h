@@ -30,8 +30,8 @@ Each packet has the following header:
 
 struct PacketHeader
 {
-    uint16 m_packetFormat;           // 2023
-    uint8 m_gameYear;                // Game year - last two digits e.g. 23
+    uint16 m_packetFormat;           // 2024
+    uint8 m_gameYear;                // Game year - last two digits e.g. 24
     uint8 m_gameMajorVersion;        // Game major version - "X.00"
     uint8 m_gameMinorVersion;        // Game minor version - "1.XX"
     uint8 m_packetVersion;           // Version of this packet type, all start from 1
@@ -66,7 +66,7 @@ Car Damage              10      Damage status for all cars
 Session History         11      Lap and tyre data for session
 Tyre Sets               12      Extended tyre set data
 Motion Ex               13      Extended motion data for player car
-
+Time Trial              14      Time Trial specific data
 
 ## Motion Packet
 
@@ -115,7 +115,7 @@ struct PacketMotionData
 The session packet includes details about the current session in progress.
 
 Frequency: 2 per second
-Size: 644 bytes
+Size: 753 bytes
 Version: 1
 */
 struct MarshalZone
@@ -126,9 +126,7 @@ struct MarshalZone
 
 struct WeatherForecastSample
 {
-    uint8 m_sessionType;           // 0 = unknown, 1 = P1, 2 = P2, 3 = P3, 4 = Short P, 5 = Q1
-                                   // 6 = Q2, 7 = Q3, 8 = Short Q, 9 = OSQ, 10 = R, 11 = R2
-                                   // 12 = R3, 13 = Time Trial
+    uint8 m_sessionType;           // 0 = unknown, see appendix
     uint8 m_timeOffset;            // Time in minutes the forecast is for
     uint8 m_weather;               // Weather - 0 = clear, 1 = light cloud, 2 = overcast
                                    // 3 = light rain, 4 = heavy rain, 5 = storm
@@ -149,13 +147,11 @@ struct PacketSessionData
     int8 m_airTemperature;                              // Air temp. in degrees celsius
     uint8 m_totalLaps;                                  // Total number of laps in this race
     uint16 m_trackLength;                               // Track length in metres
-    uint8 m_sessionType;                                // 0 = unknown, 1 = P1, 2 = P2, 3 = P3, 4 = Short P
-                                                        // 5 = Q1, 6 = Q2, 7 = Q3, 8 = Short Q, 9 = OSQ
-                                                        // 10 = R, 11 = R2, 12 = R3, 13 = Time Trial
+    uint8 m_sessionType;                                // 0 = unknown, see appendix
     int8 m_trackId;                                     // -1 for unknown, see appendix
     uint8 m_formula;                                    // Formula, 0 = F1 Modern, 1 = F1 Classic, 2 = F2,
-                                                        // 3 = F1 Generic, 4 = Beta, 5 = Supercars
-                                                        // 6 = Esports, 7 = F2 2021
+                                                        // 3 = F1 Generic, 4 = Beta, 6 = Esports
+                                                        // 8 = F1 World, 9 = F1 Elimination
     uint16 m_sessionTimeLeft;                           // Time left in session in seconds
     uint16 m_sessionDuration;                           // Session duration in seconds
     uint8 m_pitSpeedLimit;                              // Pit speed limit in kilometres per hour
@@ -169,7 +165,7 @@ struct PacketSessionData
                                                         // 2 = virtual, 3 = formation lap
     uint8 m_networkGame;                                // 0 = offline, 1 = online
     uint8 m_numWeatherForecastSamples;                  // Number of weather samples to follow
-    WeatherForecastSample m_weatherForecastSamples[56]; // Array of weather forecast samples
+    WeatherForecastSample m_weatherForecastSamples[64]; // Array of weather forecast samples
     uint8 m_forecastAccuracy;                           // 0 = Perfect, 1 = Approximate
     uint8 m_aiDifficulty;                               // AI Difficulty rating – 0-110
     uint32 m_seasonLinkIdentifier;                      // Identifier for season - persists across saves
@@ -199,6 +195,35 @@ struct PacketSessionData
     uint8 m_numSafetyCarPeriods;                        // Number of safety cars called during session
     uint8 m_numVirtualSafetyCarPeriods;                 // Number of virtual safety cars called
     uint8 m_numRedFlagPeriods;                          // Number of red flags called during session
+    uint8 m_equalCarPerformance;                        // 0 = Off, 1 = On
+    uint8 m_recoveryMode;                               // 0 = None, 1 = Flashbacks, 2 = Auto-recovery
+    uint8 m_flashbackLimit;                             // 0 = Low, 1 = Medium, 2 = High, 3 = Unlimited
+    uint8 m_surfaceType;                                // 0 = Simplified, 1 = Realistic
+    uint8 m_lowFuelMode;                                // 0 = Easy, 1 = Hard
+    uint8 m_raceStarts;                                 // 0 = Manual, 1 = Assisted
+    uint8 m_tyreTemperature;                            // 0 = Surface only, 1 = Surface & Carcass
+    uint8 m_pitLaneTyreSim;                             // 0 = On, 1 = Off
+    uint8 m_carDamage;                                  // 0 = Off, 1 = Reduced, 2 = Standard, 3 = Simulation
+    uint8 m_carDamageRate;                              // 0 = Reduced, 1 = Standard, 2 = Simulation
+    uint8 m_collisions;                                 // 0 = Off, 1 = Player-to-Player Off, 2 = On
+    uint8 m_collisionsOffForFirstLapOnly;               // 0 = Disabled, 1 = Enabled
+    uint8 m_mpUnsafePitRelease;                         // 0 = On, 1 = Off (Multiplayer)
+    uint8 m_mpOffForGriefing;                           // 0 = Disabled, 1 = Enabled (Multiplayer)
+    uint8 m_cornerCuttingStringency;                    // 0 = Regular, 1 = Strict
+    uint8 m_parcFermeRules;                             // 0 = Off, 1 = On
+    uint8 m_pitStopExperience;                          // 0 = Automatic, 1 = Broadcast, 2 = Immersive
+    uint8 m_safetyCar;                                  // 0 = Off, 1 = Reduced, 2 = Standard, 3 = Increased
+    uint8 m_safetyCarExperience;                        // 0 = Broadcast, 1 = Immersive
+    uint8 m_formationLap;                               // 0 = Off, 1 = On
+    uint8 m_formationLapExperience;                     // 0 = Broadcast, 1 = Immersive
+    uint8 m_redFlags;                                   // 0 = Off, 1 = Reduced, 2 = Standard, 3 = Increased
+    uint8 m_affectsLicenceLevelSolo;                    // 0 = Off, 1 = On
+    uint8 m_affectsLicenceLevelMP;                      // 0 = Off, 1 = On
+    uint8 m_numSessionsInWeekend;                       // Number of session in following array
+    uint8 m_weekendStructure[12];                       // List of session types to show weekend
+                                                        // structure - see appendix for types
+    float m_sector2LapDistanceStart;                    // Distance in m around track where sector 2 starts
+    float m_sector3LapDistanceStart;                    // Distance in m around track where sector 3 starts
 };
 
 /*
@@ -207,45 +232,49 @@ struct PacketSessionData
 The lap data packet gives details of all the cars in the session.
 
 Frequency: Rate as specified in menus
-Size: 1131 bytes
+Size: 1285 bytes
 Version: 1
 */
 struct LapData
 {
-    uint32 m_lastLapTimeInMS;            // Last lap time in milliseconds
-    uint32 m_currentLapTimeInMS;         // Current time around the lap in milliseconds
-    uint16 m_sector1TimeInMS;            // Sector 1 time in milliseconds
-    uint8 m_sector1TimeMinutes;          // Sector 1 whole minute part
-    uint16 m_sector2TimeInMS;            // Sector 2 time in milliseconds
-    uint8 m_sector2TimeMinutes;          // Sector 2 whole minute part
-    uint16 m_deltaToCarInFrontInMS;      // Time delta to car in front in milliseconds
-    uint16 m_deltaToRaceLeaderInMS;      // Time delta to race leader in milliseconds
-    float m_lapDistance;                 // Distance vehicle is around current lap in metres – could
-                                         // be negative if line hasn’t been crossed yet
-    float m_totalDistance;               // Total distance travelled in session in metres – could
-                                         // be negative if line hasn’t been crossed yet
-    float m_safetyCarDelta;              // Delta in seconds for safety car
-    uint8 m_carPosition;                 // Car race position
-    uint8 m_currentLapNum;               // Current lap number
-    uint8 m_pitStatus;                   // 0 = none, 1 = pitting, 2 = in pit area
-    uint8 m_numPitStops;                 // Number of pit stops taken in this race
-    uint8 m_sector;                      // 0 = sector1, 1 = sector2, 2 = sector3
-    uint8 m_currentLapInvalid;           // Current lap invalid - 0 = valid, 1 = invalid
-    uint8 m_penalties;                   // Accumulated time penalties in seconds to be added
-    uint8 m_totalWarnings;               // Accumulated number of warnings issued
-    uint8 m_cornerCuttingWarnings;       // Accumulated number of corner cutting warnings issued
-    uint8 m_numUnservedDriveThroughPens; // Num drive through pens left to serve
-    uint8 m_numUnservedStopGoPens;       // Num stop go pens left to serve
-    uint8 m_gridPosition;                // Grid position the vehicle started the race in
-    uint8 m_driverStatus;                // Status of driver - 0 = in garage, 1 = flying lap
-                                         // 2 = in lap, 3 = out lap, 4 = on track
-    uint8 m_resultStatus;                // Result status - 0 = invalid, 1 = inactive, 2 = active
-                                         // 3 = finished, 4 = didnotfinish, 5 = disqualified
-                                         // 6 = not classified, 7 = retired
-    uint8 m_pitLaneTimerActive;          // Pit lane timing, 0 = inactive, 1 = active
-    uint16 m_pitLaneTimeInLaneInMS;      // If active, the current time spent in the pit lane in ms
-    uint16 m_pitStopTimerInMS;           // Time of the actual pit stop in ms
-    uint8 m_pitStopShouldServePen;       // Whether the car should serve a penalty at this stop
+    uint32 m_lastLapTimeInMS;             // Last lap time in milliseconds
+    uint32 m_currentLapTimeInMS;          // Current time around the lap in milliseconds
+    uint16 m_sector1TimeMSPart;           // Sector 1 time milliseconds part
+    uint8 m_sector1TimeMinutesPart;       // Sector 1 whole minute part
+    uint16 m_sector2TimeMSPart;           // Sector 2 time milliseconds part
+    uint8 m_sector2TimeMinutesPart;       // Sector 2 whole minute part
+    uint16 m_deltaToCarInFrontMSPart;     // Time delta to car in front milliseconds part
+    uint8 m_deltaToCarInFrontMinutesPart; // Time delta to car in front whole minute part
+    uint16 m_deltaToRaceLeaderMSPart;     // Time delta to race leader milliseconds part
+    uint8 m_deltaToRaceLeaderMinutesPart; // Time delta to race leader whole minute part
+    float m_lapDistance;                  // Distance vehicle is around current lap in metres – could
+                                          // be negative if line hasn’t been crossed yet
+    float m_totalDistance;                // Total distance travelled in session in metres – could
+                                          // be negative if line hasn’t been crossed yet
+    float m_safetyCarDelta;               // Delta in seconds for safety car
+    uint8 m_carPosition;                  // Car race position
+    uint8 m_currentLapNum;                // Current lap number
+    uint8 m_pitStatus;                    // 0 = none, 1 = pitting, 2 = in pit area
+    uint8 m_numPitStops;                  // Number of pit stops taken in this race
+    uint8 m_sector;                       // 0 = sector1, 1 = sector2, 2 = sector3
+    uint8 m_currentLapInvalid;            // Current lap invalid - 0 = valid, 1 = invalid
+    uint8 m_penalties;                    // Accumulated time penalties in seconds to be added
+    uint8 m_totalWarnings;                // Accumulated number of warnings issued
+    uint8 m_cornerCuttingWarnings;        // Accumulated number of corner cutting warnings issued
+    uint8 m_numUnservedDriveThroughPens;  // Num drive through pens left to serve
+    uint8 m_numUnservedStopGoPens;        // Num stop go pens left to serve
+    uint8 m_gridPosition;                 // Grid position the vehicle started the race in
+    uint8 m_driverStatus;                 // Status of driver - 0 = in garage, 1 = flying lap
+                                          // 2 = in lap, 3 = out lap, 4 = on track
+    uint8 m_resultStatus;                 // Result status - 0 = invalid, 1 = inactive, 2 = active
+                                          // 3 = finished, 4 = didnotfinish, 5 = disqualified
+                                          // 6 = not classified, 7 = retired
+    uint8 m_pitLaneTimerActive;           // Pit lane timing, 0 = inactive, 1 = active
+    uint16 m_pitLaneTimeInLaneInMS;       // If active, the current time spent in the pit lane in ms
+    uint16 m_pitStopTimerInMS;            // Time of the actual pit stop in ms
+    uint8 m_pitStopShouldServePen;        // Whether the car should serve a penalty at this stop
+    float m_speedTrapFastestSpeed;        // Fastest speed through speed trap for this car in kmph
+    uint8 m_speedTrapFastestLap;          // Lap no the fastest speed was achieved, 255 = not set
 };
 
 struct PacketLapData
@@ -347,6 +376,20 @@ union EventDataDetails
         uint8 overtakingVehicleIdx;     // Vehicle index of the vehicle overtaking
         uint8 beingOvertakenVehicleIdx; // Vehicle index of the vehicle being overtaken
     } Overtake;
+
+    struct
+    {
+        uint8 safetyCarType; // 0 = No Safety Car, 1 = Full Safety Car
+                             // 2 = Virtual Safety Car, 3 = Formation Lap Safety Car
+        uint8 eventType;     // 0 = Deployed, 1 = Returning, 2 = Returned
+                             // 3 = Resume Race
+    } SafetyCar;
+
+    struct
+    {
+        uint8 vehicle1Idx; // Vehicle index of the first vehicle involved in the collision
+        uint8 vehicle2Idx; // Vehicle index of the second vehicle involved in the collision
+    } Collision;
 };
 
 struct PacketEventData
@@ -381,6 +424,8 @@ Flashback               “FLBK”  Flashback activated
 Button status           “BUTN”  Button status changed
 Red Flag                “RDFL”  Red flag shown
 Overtake                “OVTK”  Overtake occurred
+Safety Car              “SCAR”  Safety car event – details in event
+Collision               “COLL”  Collision between two vehicles has occurred
 
 
 Participants Packet
@@ -395,7 +440,7 @@ be the LAN name if playing a LAN game, otherwise it will be the driver name.
 The array should be indexed by vehicle index.
 
 Frequency: Every 5 seconds
-Size: 1306 bytes
+Size: 1350 bytes
 Version: 1
 */
 struct ParticipantData
@@ -411,6 +456,7 @@ struct ParticipantData
                              // Will be truncated with … (U+2026) if too long
     uint8 m_yourTelemetry;   // The player's UDP setting, 0 = restricted, 1 = public
     uint8 m_showOnlineNames; // The player's show online names setting, 0 = off, 1 = on
+    uint16 m_techLevel;      // F1 World tech level
     uint8 m_platform;        // 1 = Steam, 3 = PlayStation, 4 = Xbox, 6 = Origin, 255 = unknown
 };
 
@@ -432,7 +478,7 @@ to see your own car setup, regardless of the “Your Telemetry” setting.
 Spectators will also not be able to see any car setups.
 
 Frequency: 2 per second
-Size: 1107 bytes
+Size: 1133 bytes
 Version: 1
 */
 struct CarSetupData
@@ -453,6 +499,7 @@ struct CarSetupData
     uint8 m_rearSuspensionHeight;   // Rear ride height
     uint8 m_brakePressure;          // Brake pressure (percentage)
     uint8 m_brakeBias;              // Brake bias (percentage)
+    uint8 m_engineBraking;          // Engine braking (percentage)
     float m_rearLeftTyrePressure;   // Rear left tyre pressure (PSI)
     float m_rearRightTyrePressure;  // Rear right tyre pressure (PSI)
     float m_frontLeftTyrePressure;  // Front left tyre pressure (PSI)
@@ -466,6 +513,8 @@ struct PacketCarSetupData
     PacketHeader m_header; // Header
 
     CarSetupData m_carSetups[22];
+
+    float m_nextFrontWingValue; // Value of front wing after next pit stop - player only
 };
 
 /*
@@ -619,19 +668,22 @@ each player’s selected car, any AI involved in the game and also the ready
 status of each of the participants.
 
 Frequency: Two every second when in the lobby
-Size: 1218 bytes
+Size: 1306 bytes
 Version: 1
 */
 struct LobbyInfoData
 {
-    uint8 m_aiControlled; // Whether the vehicle is AI (1) or Human (0) controlled
-    uint8 m_teamId;       // Team id - see appendix (255 if no team currently selected)
-    uint8 m_nationality;  // Nationality of the driver
-    uint8 m_platform;     // 1 = Steam, 3 = PlayStation, 4 = Xbox, 6 = Origin, 255 = unknown
-    char m_name[48];      // Name of participant in UTF-8 format – null terminated
-                          // Will be truncated with ... (U+2026) if too long
-    uint8 m_carNumber;    // Car number of the player
-    uint8 m_readyStatus;  // 0 = not ready, 1 = ready, 2 = spectating
+    uint8 m_aiControlled;    // Whether the vehicle is AI (1) or Human (0) controlled
+    uint8 m_teamId;          // Team id - see appendix (255 if no team currently selected)
+    uint8 m_nationality;     // Nationality of the driver
+    uint8 m_platform;        // 1 = Steam, 3 = PlayStation, 4 = Xbox, 6 = Origin, 255 = unknown
+    char m_name[48];         // Name of participant in UTF-8 format – null terminated
+                             // Will be truncated with ... (U+2026) if too long
+    uint8 m_carNumber;       // Car number of the player
+    uint8 m_yourTelemetry;   // The player's UDP setting, 0 = restricted, 1 = public
+    uint8 m_showOnlineNames; // The player's show online names setting, 0 = off, 1 = on
+    uint16 m_techLevel;      // F1 World tech level
+    uint8 m_readyStatus;     // 0 = not ready, 1 = ready, 2 = spectating
 };
 
 struct PacketLobbyInfoData
@@ -779,7 +831,7 @@ The motion packet gives extended data for the car being driven with the goal of
 being able to drive a motion platform setup.
 
 Frequency: Rate as specified in menus
-Size: 217 bytes
+Size: 237 bytes
 Version: 1
 */
 struct PacketMotionExData
@@ -807,4 +859,72 @@ struct PacketMotionExData
     float m_angularAccelerationZ;      // Angular acceleration z-component
     float m_frontWheelsAngle;          // Current front wheels angle in radians
     float m_wheelVertForce[4];         // Vertical forces for each wheel
+    float m_frontAeroHeight;           // Front plank edge height above road surface
+    float m_rearAeroHeight;            // Rear plank edge height above road surface
+    float m_frontRollAngle;            // Roll angle of the front suspension
+    float m_rearRollAngle;             // Roll angle of the rear suspension
+    float m_chassisYaw;                // Yaw angle of the chassis relative to the direction
+                                       // of motion - radians
 };
+
+/*
+Time Trial Packet
+
+The time trial data gives extra information only relevant to time trial game
+mode. This packet will not be sent in other game modes.
+
+Frequency: 1 per second
+Size: 101 bytes
+Version: 1
+*/
+struct TimeTrialDataSet
+{
+    uint8 m_carIdx;              // Index of the car this data relates to
+    uint8 m_teamId;              // Team id - see appendix
+    uint32 m_lapTimeInMS;        // Lap time in milliseconds
+    uint32 m_sector1TimeInMS;    // Sector 1 time in milliseconds
+    uint32 m_sector2TimeInMS;    // Sector 2 time in milliseconds
+    uint32 m_sector3TimeInMS;    // Sector 3 time in milliseconds
+    uint8 m_tractionControl;     // 0 = off, 1 = medium, 2 = full
+    uint8 m_gearboxAssist;       // 1 = manual, 2 = manual & suggested gear, 3 = auto
+    uint8 m_antiLockBrakes;      // 0 (off) - 1 (on)
+    uint8 m_equalCarPerformance; // 0 = Realistic, 1 = Equal
+    uint8 m_customSetup;         // 0 = No, 1 = Yes
+    uint8 m_valid;               // 0 = invalid, 1 = valid
+};
+
+struct PacketTimeTrialData
+{
+    PacketHeader m_header; // Header
+
+    TimeTrialDataSet m_playerSessionBestDataSet; // Player session best data set
+    TimeTrialDataSet m_personalBestDataSet;      // Personal best data set
+    TimeTrialDataSet m_rivalDataSet;             // Rival data set
+};
+
+/*
+Appendix
+
+Session types
+
+    ID  Session type
+    0   Unknown
+    1   Practice 1
+    2   Practice 2
+    3   Practice 3
+    4   Short Practice
+    5   Qualifying 1
+    6   Qualifying 2
+    7   Qualifying 3
+    8   Short Qualifying
+    9   One-Shot Qualifying
+    10  Sprint Shootout 1
+    11  Sprint Shootout 2
+    12  Sprint Shootout 3
+    13  Short Sprint Shootout
+    14  One-Shot Sprint Shootout
+    15  Race
+    16  Race 2
+    17  Race 3
+    18  Time Trial
+*/
