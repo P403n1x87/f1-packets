@@ -1,33 +1,75 @@
-[tool.poetry]
+# This file is part of "f1-packets" which is released under MIT.
+#
+# See file LICENCE or go to https://opensource.org/licenses/MIT for full license details.
+#
+# f1-packets is a Python library for the official F1 game UDP telemetry data.
+#
+# Copyright (c) 2024 Gabriele N. Tornetta <phoenix1987@gmail.com>.
+# All rights reserved.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the MIT License as published by
+# the Open Source Initiative.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MIT License for more details.
+# You should have received a copy of the MIT License
+# along with this program.  If not, see <https://opensource.org/licenses/MIT>.
+
+[project]
 name = "f1-packets"
+description = "Python library for the official F1 game UDP telemetry data"
+authors = [{ name = "Gabriele N. Tornetta", email = "phoenix1987@gmail.com" }]
+license = "MIT"
+readme = "README.md"
+
 classifiers = [
   "Intended Audience :: Developers",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
 ]
-description = "Python library for the official F1 game UDP telemetry data"
-authors = ["Gabriele N. Tornetta <phoenix1987@gmail.com>"]
-license = "MIT"
-packages = [
-  {include = "f1"},
-]
-readme = "README.md"
+
+requires-python = ">=3.8"
+dependencies = []
+
+dynamic = ["version"]
+
+[project.urls]
 repository = "https://github.com/P403n1x87/f1-packets"
-version = "0.0.0"
-
-[tool.poetry.dependencies]
-python = "^3.8"
-
-[tool.poetry.urls]
 issues = "https://github.com/P403n1x87/f1-packets/issues"
 
-[tool.poetry.dev-dependencies]
-pytest = "^7.1.2"
+[tool.hatch.envs.default]
+dependencies = []
 
-[tool.poetry-dynamic-versioning]
-enable = true
+[tool.hatch.envs.tests]
+dependencies = ["pytest>=7.1.2"]
+
+[tool.hatch.envs.tests.scripts]
+tests = "pytest {args}"
+
+[[tool.hatch.envs.tests.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+[tool.hatch.envs.checks]
+dependencies = []
+
+[tool.hatch.envs.coverage]
+dependencies = []
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.targets.sdist]
+exclude = ["/.github"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["f1"]
 
 [build-system]
-build-backend = "poetry.core.masonry.api"
-requires = ["poetry_core>=1.0", "poetry-dynamic-versioning"]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
