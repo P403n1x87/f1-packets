@@ -1,7 +1,7 @@
-from dataclasses import dataclass, field
-from datetime import date
 import re
 import typing as t
+from dataclasses import dataclass, field
+from datetime import date
 from pathlib import Path
 
 
@@ -17,7 +17,12 @@ def preprocess(text):
         r'//.*?$|/\*.*?\*/|\'(?:\\.|[^\\\'])*\'|"(?:\\.|[^\\"])*"',
         re.DOTALL | re.MULTILINE,
     )
-    return re.sub(pattern, replacer, text)
+    text = re.sub(pattern, replacer, text)
+
+    for const, n in re.findall("static const .+ (.+) = (.+);", text):
+        text = text.replace(f"[{const}]", f"[{str(eval(n))}]")
+
+    return text
 
 
 def camel_to_snake(name):
@@ -207,11 +212,14 @@ class SpecParser(StackFSM):
             node.fields.append(Field(type=token, name=name))
             return
 
+        size = 1
         if next == "[":
-            # array
-            size = int(self.next())
-            assert self.next() == "]"
-            assert self.next() == ";"
+            while True:
+                # array
+                size *= int(self.next())
+                assert self.next() == "]"
+                if self.next() == ";":
+                    break
             node.fields.append(Field(type=Array(type=token, size=size), name=name))
 
     def handle_union(self, token: str, node: Union) -> str:
@@ -247,24 +255,22 @@ class SpecVisitor(NodeVisitor):
         print(f"class {node.name}(Packet):")
         print("    _fields_ = [")
 
-        for field in node.fields:
-            name = camel_to_snake(field.name)
+        for f in node.fields:
+            name = camel_to_snake(f.name)
+            if name.startswith("*cs_"):
+                continue  # skip local constants
             if name.startswith("m_"):
                 name = name[2:]
-            if isinstance(field.type, Array):
+            if isinstance(f.type, Array):
                 _type = (
-                    field.type.type
-                    if field.type.type in self._structures
-                    else f"ctypes.c_{field.type.type}"
+                    f.type.type
+                    if f.type.type in self._structures
+                    else f"ctypes.c_{f.type.type}"
                 )
 
-                print(" " * 8 + f'("{name}", {_type} * {field.type.size}),')
+                print(" " * 8 + f'("{name}", {_type} * {f.type.size}),')
             else:
-                _type = (
-                    field.type
-                    if field.type in self._structures
-                    else f"ctypes.c_{field.type}"
-                )
+                _type = f.type if f.type in self._structures else f"ctypes.c_{f.type}"
 
                 print(" " * 8 + f'("{name}", {_type}),')
         print("    ]\n\n")
