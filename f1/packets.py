@@ -841,6 +841,9 @@ TRACKS = {
     30: "Miami",
     31: "Las Vegas",
     32: "Losail",
+    39: "Silverstone (Reverse)",
+    40: "Austria (Reverse)",
+    41: "Zandvoort (Reverse)",
 }
 
 
