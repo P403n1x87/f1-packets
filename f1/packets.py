@@ -894,6 +894,7 @@ TRACKS = {
     39: "Silverstone (Reverse)",
     40: "Austria (Reverse)",
     41: "Zandvoort (Reverse)",
+    42: "Madrid",
 }
 
 
